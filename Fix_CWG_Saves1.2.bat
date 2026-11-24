@@ -9,7 +9,7 @@ echo.
 echo  This will modify your CWG save folder:
 echo    - A backup of CWG2 will be made in CustomMapData
 echo    - The ACCOUNT_* and LEGACY_* files in CWG2 will be deleted (this will not break your save data)
-echo    - ACCOUNT_VERIFY_* files are KEPT (not deleted)
+echo    - ACCOUNT_VERIFY_*, HERO_*, ENTITLEMENT_*, AND SETTINGS_* files are KEPT (not deleted)
 echo.
 set "ANSWER="
 set /p "ANSWER=Are you okay with your save folder being modified? [y/N]: "
