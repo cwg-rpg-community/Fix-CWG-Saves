@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 title Fix CWG Saves
 
 echo ============================================================
@@ -9,6 +9,7 @@ echo.
 echo  This will modify your CWG save folder:
 echo    - A backup of CWG2 will be made in CustomMapData
 echo    - The ACCOUNT_* and LEGACY_* files in CWG2 will be deleted (this will not break your save data)
+echo    - ACCOUNT_VERIFY_* files are KEPT (not deleted)
 echo.
 set "ANSWER="
 set /p "ANSWER=Are you okay with your save folder being modified? [y/N]: "
@@ -89,24 +90,28 @@ echo.
 
 :: ------------------------------------------------------------
 :: 5. Delete ACCOUNT_* and LEGACY_* files inside CWG2
+::    IMPORTANT: ACCOUNT_VERIFY_* files are KEPT (not deleted).
 :: ------------------------------------------------------------
 set /a FOUND=0
-for %%F in ("%CWGDIR%\ACCOUNT_*" "%CWGDIR%\LEGACY_*") do set /a FOUND+=1
+set "DELFAILED="
+for %%F in ("%CWGDIR%\ACCOUNT_*" "%CWGDIR%\LEGACY_*") do (
+    set "FNAME=%%~nxF"
+    if /I "!FNAME:~0,15!"=="ACCOUNT_VERIFY_" (
+        echo [KEEP] !FNAME!
+    ) else (
+        set /a FOUND+=1
+        del /F /Q "%%~fF" 2>nul
+        if exist "%%~fF" set "DELFAILED=1"
+    )
+)
 
 if %FOUND%==0 (
-    echo [INFO] No ACCOUNT_* or LEGACY_* files were found in CWG2. Nothing to delete.
+    echo [INFO] No ACCOUNT_* or LEGACY_* files to delete ^(ACCOUNT_VERIFY_* files are kept^).
     goto :finished
 )
 
-echo Deleting %FOUND% file^(s^) from CWG2 ...
-del /F /Q "%CWGDIR%\ACCOUNT_*" 2>nul
-del /F /Q "%CWGDIR%\LEGACY_*" 2>nul
-
-set "LEFTOVER="
-if exist "%CWGDIR%\ACCOUNT_*" set "LEFTOVER=1"
-if exist "%CWGDIR%\LEGACY_*" set "LEFTOVER=1"
-if defined LEFTOVER goto :delete_failed
-echo [OK] ACCOUNT_* and LEGACY_* files deleted.
+if defined DELFAILED goto :delete_failed
+echo [OK] Deleted %FOUND% ACCOUNT_*/LEGACY_* file^(s^) from CWG2 ^(ACCOUNT_VERIFY_* kept^).
 
 :finished
 echo.
@@ -172,4 +177,3 @@ goto :fail
 echo.
 pause
 exit /b 1
-
